@@ -2,11 +2,13 @@
 
   'use strict';
 
+  var KML_URL = 'http://limouren.appspot.com/map.kml';
+
   var BLACKLIST_EXTENDED_DATA_NAMES = [
+    '\u72C0\u6CC1', // 狀況
     'Category',
     'Longitude',
-    'Latitude',
-    '\u72C0\u6CC1'
+    'Latitude'
   ];
 
   var FOLDER_DICT;
@@ -16,7 +18,7 @@
       FolderContainer;
 
   function fetchKML() {
-    return $.get('map.kml');
+    return $.get(KML_URL);
   }
 
   function parseKML(data) {
@@ -62,7 +64,7 @@
         '</ul>' +
       '</li>'),
       placemarkList = $el.find('.placemark'),
-      nameSpan = $el.find('.name'),
+      nameSpan = $el.find('.name');
 
     nameSpan.html(nameText);
 
@@ -105,7 +107,7 @@
     }
   }
 
-  function renderSelect() {
+  function renderFolderSelect() {
     var keys = [];
     for (var key in FOLDER_DICT) {
       keys.push(key);
@@ -126,7 +128,7 @@
 
     FOLDER_DICT = createFolderDict(folders);
 
-    FolderSelect = renderSelect();
+    FolderSelect = renderFolderSelect();
     FolderSelect.on('change', handleFolderSelectChanged);
     FolderSelectContainer.append(FolderSelect);
 

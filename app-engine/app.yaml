@@ -1,0 +1,12 @@
+application: limouren
+version: 1
+runtime: python27
+api_version: 1
+threadsafe: true
+
+handlers:
+- url: /crossdomain.xml
+  static_files: crossdomain.xml
+  upload: crossdomain.xml
+- url: /.*
+  script: proxy.application
