@@ -1,0 +1,47 @@
+#loading {
+  display: none;
+
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+
+  background: rgba(255, 255, 255, 0.8);
+  text-align: center;
+}
+#loading .indicator {
+  font-size: 64px;
+  font-weight: bold;
+
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin-top: -35px;
+  margin-left: -31px;
+
+  -webkit-animation: spin 1.6s infinite linear;
+  -moz-animation: spin 1.6s infinite linear;
+  -o-animation: spin 1.6s infinite linear;
+  animation-name: spin 1.6s infinite linear;
+}
+body.loading #loading {
+  display: block;
+}
+
+@-webkit-keyframes spin {
+    from { -webkit-transform: rotate(0deg); }
+    to { -webkit-transform: rotate(360deg); }
+}
+@-moz-keyframes spin {
+    from { -moz-transform: rotate(0deg); }
+    to { -moz-transform: rotate(360deg); }
+}
+@-o-keyframes spin {
+    from { -o-transform: rotate(0deg); }
+    to { -o-transform: rotate(360deg); }
+}
+@keyframes spin {
+    from { transform:rotate(0deg); }
+    to { transform:rotate(360deg); }
+}

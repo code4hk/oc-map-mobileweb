@@ -57,7 +57,6 @@
     var nameText = placemark.find('>name').text(),
         datas = placemark.find('ExtendedData>Data');
 
-
     var $el = $(
       '<li><span class="name"></span>' +
         '<ul class="placemark">' +
@@ -148,6 +147,8 @@
     fetchKML().then(function(data) {
       var doc = parseKML(data);
       renderDocument(doc);
+
+      $(document.body).removeClass('loading');
     });
   }
 
