@@ -13,9 +13,11 @@
     'Latitude'
   ];
 
+  var ICON_STYLE_ID_RE = new RegExp('icon-.+');
+
   var FOLDER_SELECT_EL = $('<select id="folder-select"/>'),
       FOLDER_EL = $('<h2 class="folder-name"/><ul class="placemark-list"/>'),
-      PLACEMARK_EL = $('<li><span class="name"/> <span class="placemark-distance"/> <a class="map-link" target="_blank"></a><ul class="placemark"/></li>'),
+      PLACEMARK_EL = $('<li><img class="placemark-icon" height="28"/> <span class="name"/> <span class="placemark-distance"/> <a class="map-link" target="_blank"></a><ul class="placemark"/></li>'),
       EXTENDED_DATA_ITEM_EL = $('<li><span class="value-span"></span></li>');
 
   var DOCUMENT,
@@ -141,11 +143,13 @@
 
   function parsePlacemark(placemark) {
     var json = {},
+        styleId = placemark.find('>styleUrl').text(),
         nameText = placemark.find('>name').text(),
         extendedData = placemark.find('>ExtendedData'),
         point = placemark.find('>Point'),
         polygon = placemark.find('>Polygon');
 
+    json.styleId = styleId.substring(1);
     json.name = nameText;
     json.data = parseExtendedData(extendedData);
 
@@ -174,17 +178,38 @@
     return json;
   }
 
+  function parseStyle(style) {
+    var json = {},
+        id = style.attr('id'),
+        iconStyle = style.find('>IconStyle');
+
+    json.id = id;
+    if (iconStyle.length > 0) {
+      var href = iconStyle.find('>Icon>href').text();
+      json.href = href;
+    }
+
+    return json;
+  }
+
   function parseDocument(doc) {
     var json = {},
         name = doc.find('>name').text(),
-        folders = doc.find('>Folder');
+        folders = doc.find('>Folder'),
+        styles = doc.find('>Style');
 
     json.name = name;
     json.folderDict = {};
+    json.styleDict = {};
 
     $.each(folders, function(i, folder) {
       var f = parseFolder($(folder));
       json.folderDict[f.name] = f;
+    });
+
+    $.each(styles, function(i, style) {
+      var s = parseStyle($(style));
+      json.styleDict[s.id] = s;
     });
 
     return json;
@@ -252,10 +277,17 @@
   function renderPlacemark(placemark) {
     var $el = PLACEMARK_EL.clone(),
       placemarkList = $el.find('.placemark'),
+      iconImg = $el.find('.placemark-icon'),
       nameEl = $el.find('.name'),
       distanceSpan = $el.find('.placemark-distance'),
       mapLinkAnchor = $el.find('.map-link');
 
+    if (placemark.styleId && placemark.styleId.match(ICON_STYLE_ID_RE)) {
+      var href = DOCUMENT.styleDict[placemark.styleId].href;
+      if (href) {
+        iconImg.attr('src', href);
+      }
+    }
     if (placemark.point) {
       mapLinkAnchor.attr('href', deriveGoogleMapsUrl(placemark.point.coords));
       mapLinkAnchor.text('(view in maps)');
