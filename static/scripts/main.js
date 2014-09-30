@@ -4,7 +4,7 @@
 
   var KML_URL = 'http://limouren.appspot.com/map.kml';
 
-  var GOOGLE_MAPS_URL_PREFIX = 'https://www.google.com/maps';
+  var GOOGLE_MAPS_URL_PREFIX = 'https://www.google.com/maps/place/';
 
   var BLACKLIST_EXTENDED_DATA_NAMES = [
     '\u72C0\u6CC1', // 狀況
@@ -29,7 +29,8 @@
   }
 
   function deriveGoogleMapsUrl(coord) {
-    return GOOGLE_MAPS_URL_PREFIX + '?q=' + coord[1] + ',' + coord[0] + '&z=17z';
+    var coordStr = coord[1] + ',' + coord[0];
+    return GOOGLE_MAPS_URL_PREFIX + coordStr + '/@' + coord[1] + ',' + coord[0] + ',17z';
   }
 
   function parsePolygonCoordinates(coordinates) {
