@@ -13,6 +13,8 @@
     'Latitude'
   ];
 
+  var CATEGORY_CONVENIENT_STORE = '\u4FBF\u5229\u5E97';
+
   var ICON_STYLE_ID_RE = new RegExp('icon-.+');
 
   var FOLDER_SELECT_EL = $('<select id="folder-select"/>'),
@@ -294,6 +296,9 @@
     }
     if (placemark.geoDistance) {
       distanceSpan.text('[~' + placemark.geoDistance.toFixed(2) + ' km]');
+    }
+    if (placemark.data.Category && placemark.data.Category == CATEGORY_CONVENIENT_STORE) {
+      placemarkList.append(renderExtendedDataItem('Location', placemark.data.Description));
     }
 
     nameEl.text(placemark.name);
