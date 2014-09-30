@@ -4,6 +4,8 @@
 
   var KML_URL = 'http://limouren.appspot.com/map.kml';
 
+  var GOOGLE_MAPS_URL_PREFIX = 'https://www.google.com/maps';
+
   var BLACKLIST_EXTENDED_DATA_NAMES = [
     '\u72C0\u6CC1', // 狀況
     'Category',
@@ -11,9 +13,9 @@
     'Latitude'
   ];
 
-  var FOLDER_SELECT_EL = $('<select id="folder-select" />'),
+  var FOLDER_SELECT_EL = $('<select id="folder-select"/>'),
       FOLDER_EL = $('<h2 class="folder-name"/><ul class="placemark-list"/>'),
-      PLACEMARK_EL = $('<li><span class="name"/><ul class="placemark"/></li>'),
+      PLACEMARK_EL = $('<li><span class="name"/> <a class="map-link" target="_blank"></a><ul class="placemark"/></li>'),
       EXTENDED_DATA_ITEM_EL = $('<li><span class="value-span"></span></li>');
 
   var FOLDER_DICT;
@@ -24,6 +26,48 @@
 
   function fetchKML() {
     return $.get(KML_URL);
+  }
+
+  function deriveGoogleMapsUrl(coord) {
+    return GOOGLE_MAPS_URL_PREFIX + '?q=' + coord[1] + ',' + coord[0] + '&z=17z';
+  }
+
+  function parsePolygonCoordinates(coordinates) {
+    var n = coordinates.length / 3,
+        coords = [];
+    for (var i = 0; i < n; ++i) {
+      coords.push([coordinates[i*3], coordinates[i*3 + 1], coordinates[i*3 + 2]]);
+    }
+
+    return coords;
+  }
+
+  function polygonArea(coords) {
+    var sum = 0;
+    for (var i = 0; i < coords.length - 1; ++i) {
+      sum += coords[i][0]*coords[i+1][1];
+      sum -= coords[i+1][0]*coords[i][1];
+    }
+
+    return sum/2;
+  }
+
+  function polygonCenteriod(coords) {
+    var area = polygonArea(coords),
+        cx = 0,
+        cy = 0;
+
+    for (var i = 0; i < coords.length - 1; ++i) {
+      var xi = coords[i][0],
+          yi = coords[i][1],
+          xii = coords[i+1][0],
+          yii = coords[i+1][1];
+      cx += (xi + xii)*(xi*yii - xii*yi);
+      cy += (yi + yii)*(xi*yii - xii*yi);
+    }
+
+    var centroid = [cx/(6*area), cy/(6*area), 0.0];
+    return centroid;
   }
 
   function parseData(data) {
@@ -49,14 +93,45 @@
     return json;
   }
 
+  function parsePolygon(polygon) {
+    var json = {},
+        coordinatesText = polygon.find('>outerBoundaryIs>LinearRing>coordinates').text(),
+        coordinatesTextList = coordinatesText.split(' ');
+
+    var coordinatesList = $.map(coordinatesTextList, function(coordText) {
+      return JSON.parse('[' + coordText + ']');
+    });
+    var coords = parsePolygonCoordinates(coordinatesList);
+    json.coordinates = polygonCenteriod(coords);
+
+    return json;
+  }
+
+  function parsePoint(point) {
+    var json = {},
+        coordinatesText = point.find('>coordinates').text(),
+        coordinates = JSON.parse('[' + coordinatesText + ']');
+
+    json.coordinates = coordinates;
+
+    return json;
+  }
 
   function parsePlacemark(placemark) {
     var json = {},
         nameText = placemark.find('>name').text(),
-        extendedData = placemark.find('>ExtendedData');
+        extendedData = placemark.find('>ExtendedData'),
+        point = placemark.find('>Point'),
+        polygon = placemark.find('>Polygon');
 
     json.name = nameText;
     json.data = parseExtendedData(extendedData);
+
+    if (point.length > 0) {
+      json.point = parsePoint(point);
+    } else if (polygon.length > 0) {
+      json.point = parsePolygon(polygon);
+    }
 
     return json;
   }
@@ -130,9 +205,15 @@
   function renderPlacemark(placemark) {
     var $el = PLACEMARK_EL.clone(),
       placemarkList = $el.find('.placemark'),
-      nameSpan = $el.find('.name');
+      nameEl = $el.find('.name'),
+      mapLinkAnchor = $el.find('.map-link');
 
-    nameSpan.text(placemark.name);
+    if (placemark.point) {
+      mapLinkAnchor.attr('href', deriveGoogleMapsUrl(placemark.point.coordinates));
+      mapLinkAnchor.text('(view in maps)');
+    }
+
+    nameEl.text(placemark.name);
     placemarkList.append(renderExtendedData(placemark.data));
 
     return $el;
