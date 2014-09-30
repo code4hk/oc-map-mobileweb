@@ -11,6 +11,11 @@
     'Latitude'
   ];
 
+  var FOLDER_SELECT_EL = $('<select id="folder-select" />'),
+      FOLDER_EL = $('<h2 class="folder-name"/><ul class="placemark-list"/>'),
+      PLACEMARK_EL = $('<li><span class="name"/><ul class="placemark"/></li>'),
+      EXTENDED_DATA_ITEM_EL = $('<li><span class="value-span"></span></li>');
+
   var FOLDER_DICT;
 
   var FolderSelectContainer,
@@ -101,11 +106,11 @@
   }
 
   function renderExtendedDataItem(name, value) {
-    var $el = $('<li><span class="value-span"></span></li>'),
+    var $el = EXTENDED_DATA_ITEM_EL.clone(),
         nameSpan = $el.find('.data-name'),
         valueSpan = $el.find('.value-span');
 
-    valueSpan.html(value);
+    valueSpan.text(value);
 
     return $el;
   }
@@ -123,26 +128,22 @@
   }
 
   function renderPlacemark(placemark) {
-    var $el = $(
-      '<li><span class="name"></span>' +
-        '<ul class="placemark">' +
-        '</ul>' +
-      '</li>'),
+    var $el = PLACEMARK_EL.clone(),
       placemarkList = $el.find('.placemark'),
       nameSpan = $el.find('.name');
 
-    nameSpan.html(placemark.name);
+    nameSpan.text(placemark.name);
     placemarkList.append(renderExtendedData(placemark.data));
 
     return $el;
   }
 
   function renderFolder(folder) {
-    var $el = $('<h2 class="folder-name"></h2><ul class="placemark-list"></ul>'),
+    var $el = FOLDER_EL.clone(),
         nameEl = $el.filter('.folder-name'),
         placemarkList = $el.filter('.placemark-list');
 
-    nameEl.html(folder.name);
+    nameEl.text(folder.name);
 
     $.each(folder.placemarks, function(i, placemark) {
       var $itemEl = renderPlacemark(placemark);
@@ -169,10 +170,10 @@
       keys.push(key);
     }
 
-    var $el = $('<select id="folder-select" />');
+    var $el = FOLDER_SELECT_EL.clone();
     $.each(keys, function(i, key) {
       var keyEl = $('<option/>');
-      keyEl.html(key);
+      keyEl.text(key);
       $el.append(keyEl);
     });
 
